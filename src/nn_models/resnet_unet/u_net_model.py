@@ -8,6 +8,7 @@ from keras.layers.merge import concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling2D
 from keras.applications import resnet50
+from src.nn_models.resnet_unet import vgg16
 
 # from inception_resnet_v2 import InceptionResNetV2
 # from mobile_net_fixed import MobileNet
@@ -58,7 +59,7 @@ def get_unet_resnet(input_shape):
     conv9 = conv_block_simple(up9, 64, "conv9_1")
     conv9 = conv_block_simple(conv9, 64, "conv9_2")
 
-    vgg = VGG16(input_shape=input_shape, input_tensor=resnet_base.input, weights=None, include_top=False)
+    vgg = vgg16.VGG16(input_shape=input_shape, input_tensor=resnet_base.input, weights=None, include_top=False)
     for l in vgg.layers:
         l.trainable = False
     vgg_first_conv = vgg.get_layer("block1_conv2").output
