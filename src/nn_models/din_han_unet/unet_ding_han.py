@@ -30,7 +30,7 @@ def level_block(m, dim, depth, inc, acti, do, bn, mp, up, res):
     return m
 
 
-def UNet(img_shape, out_ch=1, start_ch=64, depth=4, inc_rate=2., activation='relu',
+def UNet(img_shape, out_ch=1, start_ch=32, depth=4, inc_rate=2., activation='relu',
          dropout=0.5, batchnorm=False, maxpool=True, upconv=True, residual=False):
     i = Input(shape=img_shape)
     o = level_block(i, start_ch, depth, inc_rate, activation, dropout, batchnorm, maxpool, upconv, residual)

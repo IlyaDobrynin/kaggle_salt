@@ -4,6 +4,8 @@ from keras.losses import binary_crossentropy
 import tensorflow as tf
 import numpy as np
 
+from src.pipe import validate
+
 
 """
                                 UTILS
@@ -15,7 +17,6 @@ def get_border_mask(pool_size, y_true):
     negative = K.pool2d(negative, pool_size=pool_size, padding="same")
     border = positive * negative
     return border
-
 
 
 """
@@ -41,12 +42,17 @@ def mean_iou(y_true, y_pred):
     prec = []
     for t in np.arange(0.5, 1.0, 0.05):
         y_pred_ = tf.to_int32(y_pred > t)
-        score, up_opt = tf.metrics.mean_iou(y_true, y_pred_, 1)
+        score, up_opt = tf.metrics.mean_iou(y_true, y_pred_, 2)
         K.get_session().run(tf.local_variables_initializer())
         with tf.control_dependencies([up_opt]):
             score = tf.identity(score)
         prec.append(score)
     return K.mean(K.stack(prec), axis=0)
+
+
+def my_iou_metric(y_true, y_pred):
+    metric_value = tf.py_func(validate.iou_metric_batch, [y_true, y_pred], tf.float64)
+    return metric_value
 
 
 """
@@ -134,8 +140,10 @@ def weighted_bce_dice_loss(y_true, y_pred):
 
 
 """
-                                JACCARD
+                                JACARD
 """
+
+
 def jacard_coef(y_true, y_pred, smooth=1.0):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
@@ -145,6 +153,29 @@ def jacard_coef(y_true, y_pred, smooth=1.0):
 
 def jacard_coef_loss(y_true, y_pred):
     return -jacard_coef(y_true, y_pred)
+
+
+def dice_jacard_loss(y_true, y_pred):
+    return bce_logdice_loss(y_true, y_pred) + jacard_coef_loss(y_true, y_pred)
+
+
+def weighted_bce_dice_jacard_loss(y_true, y_pred):
+    return weighted_bce_dice_loss(y_true, y_pred) + jacard_coef_loss(y_true, y_pred)
+
+
+def weighted_bce_jacard_loss(y_true, y_pred):
+    y_true = K.cast(y_true, 'float32')
+    y_pred = K.cast(y_pred, 'float32')
+    # if we want to get same size of output, kernel size must be odd
+    averaged_mask = K.pool2d(
+        y_true, pool_size=(50, 50), strides=(1, 1), padding='same', pool_mode='avg')
+    weight = K.ones_like(averaged_mask)
+    w0 = K.sum(weight)
+    weight = 5. * K.exp(-5. * K.abs(averaged_mask - 0.5))
+    w1 = K.sum(weight)
+    weight *= (w0 / w1)
+    loss = weighted_bce_loss(y_true, y_pred, weight) + jacard_coef_loss(y_true, y_pred)
+    return loss
 
 
 """
@@ -217,12 +248,24 @@ def make_loss(loss_name):
         return dice_coef_loss_border
     elif loss_name == 'bce_dice_loss_border':
         return bce_dice_loss_border
+    elif loss_name == 'bce_logdice_loss':
+        return bce_logdice_loss
     elif loss_name == 'weighted_bce_dice_loss':
         return weighted_bce_dice_loss
-    elif loss_name == 'weighted_dice_loss':
-        return weighted_dice_loss
     elif loss_name == 'agg_loss':
         return agg_loss
+    elif loss_name == 'dice_jacard_loss':
+        return dice_jacard_loss
+    elif loss_name == 'bce_dice_loss':
+        return bce_dice_loss
+    elif loss_name == 'dice_coef_loss_bce':
+        return dice_coef_loss_bce
+    elif loss_name == 'jacard_coef_loss':
+        return jacard_coef_loss
+    elif loss_name == 'weighted_bce_dice_jacard_loss':
+        return weighted_bce_dice_jacard_loss
+    elif loss_name == 'weighted_bce_jacard_loss':
+        return weighted_bce_jacard_loss
     else:
         ValueError("Unknown loss.")
 

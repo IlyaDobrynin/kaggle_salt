@@ -81,13 +81,13 @@ def dice_coef_loss(y_true, y_pred):
     return -dice_coef(y_true, y_pred)
 
 
-def double_conv_layer(x, size, dropout=0.5, batch_norm=True):
+def double_conv_layer(x, size, dropout=0.2, batch_norm=True):
     axis = 3
     conv = Conv2D(size, (3, 3), padding='same')(x)
     if batch_norm is True:
         conv = BatchNormalization(axis=axis)(conv)
-    # conv = Activation('relu')(conv)
-    conv = Conv2D(size, (3, 3), padding='same', activation='relu')(conv)
+    conv = Activation('relu')(conv)
+    conv = Conv2D(size, (3, 3), padding='same')(conv)
     if batch_norm is True:
         conv = BatchNormalization(axis=axis)(conv)
     conv = Activation('relu')(conv)
@@ -96,7 +96,7 @@ def double_conv_layer(x, size, dropout=0.5, batch_norm=True):
     return conv
 
 
-def ZF_UNET_224(in_shape, dropout_val=0.5, weights=None):
+def ZF_UNET_224(in_shape, dropout_val=0.2, weights=None):
 
     inputs = Input(in_shape)
     axis = 3

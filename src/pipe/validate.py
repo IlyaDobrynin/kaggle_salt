@@ -63,3 +63,5 @@ def iou_metric_batch(y_true_in, y_pred_in):
         value = iou_metric(y_true_in[batch], y_pred_in[batch])
         metric.append(value)
     return np.mean(metric)
+
+

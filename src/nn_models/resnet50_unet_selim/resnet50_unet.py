@@ -76,8 +76,8 @@ def decoder_block_no_bn(input, filters, skip, block_name, activation='relu'):
 
 def resnet50_fpn(input_shape, channels=1, activation="softmax"):
     img_input = Input(input_shape)
-    resnet_base = ResNet50(img_input, include_top=True)
-    resnet_base.load_weights(os.path.join(ROOT_DIR, r'weights/resnet_50/ResNet-50-model.keras.h5'))
+    resnet_base = ResNet50(img_input, include_top=False, classes=1)
+    # resnet_base.load_weights(os.path.join(ROOT_DIR, r'weights/resnet_50/ResNet-50-model.keras.h5'))
     conv1 = resnet_base.get_layer("conv1_relu").output
     conv2 = resnet_base.get_layer("res2c_relu").output
     conv3 = resnet_base.get_layer("res3d_relu").output

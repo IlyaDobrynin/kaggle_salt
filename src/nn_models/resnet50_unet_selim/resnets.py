@@ -28,7 +28,7 @@ def ResNet(inputs, blocks, block, include_top=True, classes=1000, numerical_name
         >>> import keras_resnet.blocks
         >>> import keras_resnet.models
 
-        >>> shape, classes = (224, 224, 3), 1000
+        >>> shape, classes = (224, 224, 1), 1
 
         >>> x = keras.layers.Input(shape)
 

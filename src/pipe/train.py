@@ -56,7 +56,7 @@ def create_generator(train_images, train_masks, val_images, val_masks, batch_siz
 def train_model(model, loss,
                 train_generator, val_generator,
                 model_name, out_model_path,
-                metrics=list(['accuracy']),
+                metrics=None,
                 epochs=200, patience=10, optim_type='Adam', learning_rate=0.001):
 
     if optim_type == 'SGD':
@@ -70,7 +70,7 @@ def train_model(model, loss,
         ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-9, epsilon=0.00001, verbose=1,
                           mode='min'),
         EarlyStopping(monitor='val_loss', patience=patience, verbose=1),
-        ModelCheckpoint(os.path.join(out_model_path, '{}_tmp.model'.format(model_name, model_name)),
+        ModelCheckpoint(os.path.join(out_model_path, '{}.h5'.format(model_name)),
                         monitor='val_loss',
                         save_best_only=True,
                         verbose=1),
@@ -88,7 +88,8 @@ def train_model(model, loss,
         # use_multiprocessing=True,
         callbacks=callbacks)
 
-    model_json_name, model_h5_name = save_model(model=model, model_name=model_name, model_save_path=out_model_path)
+    model_h5_name = "{}.h5".format(model_name)
+    model_json_name = save_model(model=model, model_name=model_name, model_save_path=out_model_path)
     # model.save_weights(out_model_path)
     pd.DataFrame(history.history).to_csv(os.path.join(out_model_path, r'logs.csv'), index=False)
     del model
@@ -108,12 +109,12 @@ def save_model(model, model_name, model_save_path):
     """
 
     model_json_name = "{}.json".format(model_name)
-    model_h5_name = "{}.h5".format(model_name)
+    # model_h5_name = "{}.h5".format(model_name)
 
     model_json = model.to_json()
     json_file = open(os.path.join(model_save_path, model_json_name), "w")
     json_file.write(model_json)
     json_file.close()
-    model.save_weights(os.path.join(model_save_path, model_h5_name))
+    # model.save_weights(os.path.join(model_save_path, model_h5_name))
 
-    return model_json_name, model_h5_name
+    return model_json_name #, model_h5_name
